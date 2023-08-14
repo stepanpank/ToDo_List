@@ -1,0 +1,60 @@
+﻿@model List<TaskModel>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $("input[type='checkbox']").on("change", function (event) {
+                event.preventDefault(); // Заборонити стандартну дію
+
+                var checkbox = $(this);
+                var taskId = checkbox.val();
+                var isCompleted = checkbox.prop("checked");
+
+                $.ajax({
+                    url: '@Url.Action("UpdateTaskStatus", "List")', // Вірна URL адреса методу
+                    type: 'POST',
+                    data: { taskId: taskId, isCompleted: isCompleted },
+                    success: function () {
+                        console.log("Task completion status updated.");
+                        // Оновити рядок таблиці без перезавантаження сторінки
+                        var row = checkbox.closest("tr");
+                        row.find("td:eq(0)").html("<input type='checkbox' name='completedTasks' value='" + taskId + "' " + (isCompleted ? "checked" : "") + " />");
+                    },
+                    error: function () {
+                        console.log("Error updating task completion status.");
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<h2>Your Tasks</h2>
+
+<p><a asp-action="Create">Create New Task</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Title</th>
+            <th>Description</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var task in Model)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" name="completedTasks" value="@task.Id" @(task.IsCompleted ? "checked" : "") />
+                </td>
+                <td>@task.Title</td>
+                <td>@task.Description</td>
+                <td>
+                    <a href="@Url.Action("Edit", new { id = task.Id })">Edit</a> |
+                    <a href="@Url.Action("Delete", new { id = task.Id })">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
